@@ -5,6 +5,10 @@
  *      Author: reedvilanueva
  */
 
+/***************************************************************************************
+*	Modified code originally by Aashish Barnwal
+*	available at http://www.geeksforgeeks.org/greedy-algorithms-set-3-huffman-coding/
+***************************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -231,30 +235,33 @@ void printArr(int arr[], int n)
 }
 
 // Prints huffman codes from the root of Huffman Tree.
-// It uses arr[] to store codes
-void printCodes(struct MinHeapNode* root, int arr[], int top)
+// Stores codes in codes[]
+// todo: convert function to encode huffman tree, rather then the codewords
+void printCodes(struct MinHeapNode* root, int codes[], int top)
 {
-	//Moves down tree in preorder
+	//Moves thru tree in preorder
 
     // Assign 0 to left edge and recur
     if (root->left)
     {
-        arr[top] = 0;
-        printCodes(root->left, arr, top + 1);
+        codes[top] = 0;  // todo: change to 1 (to encode as huffman tree internal node)
+        printCodes(root->left, codes, top + 1);
     }
 
     // Assign 1 to right edge and recur
     if (root->right)
     {
-        arr[top] = 1;
-        printCodes(root->right, arr, top + 1);
+        codes[top] = 1;
+        printCodes(root->right, codes, top + 1);
     }
 
     // If this is a leaf node, then it contains one of the input
-    // characters, print the character and its code from arr[]
+    // characters, print the character and its code from codes[]
     if (MinHeapNode_isLeaf(root))
     {
-        printf("%c: ", root->data);   printArr(arr, top);
+    	// todo: codes[top] = 0
+        printf("%c: ", root->data);   printArr(codes, top);
+        // todo: prepend code to single binary string (representing the encoded huffman tree)
     }
 }
 
@@ -265,17 +272,40 @@ void HuffmanCodes(char data[], float freq[], int size)
    //  Construct Huffman Tree
    struct MinHeapNode* root = buildHuffmanTree(data, freq, size);
 
-   // Print Huffman codes using the Huffman tree built above
+   // Print Huffman codes using the Huffman tree
    int arr[MAX_TREE_HT], top = 0;
    printCodes(root, arr, top);
+
+   // TODO: store huffman tree encoded as single binary string
 }
 
-// Driver program to test above functions
-int main()
+int main(int argc, char *argv[])
 {
-    char arr[] = {'a', 'b', 'c', 'd', 'e', 'f'};
+	// Check if there are correct number of arguments
+//	if (argc < 3 || 3 < argc) {
+//	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
+//	   return 1;
+//	}
+
+	FILE *input_fp,
+		 *output_fp;
+
+	//todo: init symbol and freq arrays from the input file
+//	input_fp = fopen(argv[1],"r");
+    char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f'};
     float freq[] = {0.05, 0.09, 0.12, 0.13, 0.16, 0.45};
-    int size = sizeof(arr)/sizeof(arr[0]);
-    HuffmanCodes(arr, freq, size);
+    int size = sizeof(symbols)/sizeof(symbols[0]);
+
+    HuffmanCodes(symbols, freq, size);
+
+    // store huffman tree encoded as single binary string
+
+    // count length of string and store length as a 14-bit binary string
+
+    // write the length and encoded tree to output file
+
     return 0;
 }
+
+
+
