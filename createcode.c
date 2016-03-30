@@ -11,10 +11,15 @@
  *
  * Output:
  *	1. idk what the fuck he's asking for, as he uses only a specific example to hint at what he wants
- *	2. an encoded huffman tree (see end of section #3 in handout)
+ *	2. an encoded huffman tree (see end of section #3 in handout; don't use brackets)
  *
  *
  * To run the program:
  *
  * ./createcode <input data file>  <output file>
  */
+
+
+int main(int argc, char *argv[]) {
+
+}

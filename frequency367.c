@@ -29,10 +29,23 @@ typedef struct tableentry{
 /*
  * recursively builds a binary representation of an int (as an int)
  */
-int int2binInt(int i) {
-	if (i == 0) return 0;
-	if (i == 1) return 1;
-	return (i % 2) + 10*int2binInt(i/2);
+int int2binInt(int dec) {
+	if (dec == 0) return 0;
+	if (dec == 1) return 1;
+	return (dec % 2) + 10*int2binInt(dec/2);
+}
+
+/*
+ * stores 9-bit binary representation of input int i in char array buffer
+ */
+void int2binStr(char * binstring_buffer, int dec) {
+	int pos;
+	for (pos = 7; pos >= 0; pos--) {
+		if (dec % 2)
+			binstring_buffer[pos] = '1';
+		else binstring_buffer[pos] = '0';
+		dec /= 2;
+	}
 }
 
 int main(int argc, char *argv[])
@@ -77,7 +90,9 @@ int main(int argc, char *argv[])
 	for (i=0; i<256; i++) {
 	   // if ascii symbol exists in table, add it and its freq. to output file
 	   if (Table[i].count > 0) {
-		  fprintf(output_fp,"%d  %f\n", int2binInt(i), ( (float)Table[i].count)/ totalcount );
+		  char binstring_buffer[8];
+		  int2binStr(binstring_buffer, i);
+		  fprintf(output_fp,"%s   %f\n", binstring_buffer, ( (float)Table[i].count)/ totalcount );
 		  }
 	}
 	fclose(input_fp);
