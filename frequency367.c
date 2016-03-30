@@ -26,9 +26,19 @@ typedef struct tableentry{
    float freq;
    } TableEntry;
 
-main(int argc, char *argv[])
+/*
+ * recursively builds a binary representation of an int (as an int)
+ */
+int int2binInt(int i) {
+	if (i == 0) return 0;
+	if (i == 1) return 1;
+	return (i % 2) + 10*int2binInt(i/2);
+}
+
+int main(int argc, char *argv[])
 {
-	FILE *fp1, *fp2;
+	FILE *input_fp,
+		 *output_fp;
 	TableEntry Table[256];
 	int i;
 	int n;
@@ -39,32 +49,39 @@ main(int argc, char *argv[])
 	numsymbols = 0;
 	for (i=0; i<256; i++) Table[i].count = 0;  // Initialize table
 
-	// Check if there are two arguments
-	if (argc != 3) {
+	// Check if there are correct number of arguments
+	if (argc < 3 || 3 < argc) {
 	   printf("Usage:  frequency367 <input data file> <output list file>\n");
-	   return;
+	   return 1;
 	}
 
 	// Read in codebook file
-	fp1 = fopen(argv[1],"r");
-	fp2 = fopen(argv[2],"w");
+	input_fp = fopen(argv[1],"r");
+	output_fp = fopen(argv[2],"w");
 
-	//
-	while ((n=fgetc(fp1)) != EOF) {
+	// fill table with symbols from input file
+	while ((n=fgetc(input_fp)) != EOF) {
+	   // check that char from input file is valid acsii char
 	   if (n>=0 && n<256) {
+		  // check if this symbol already in table
 		  if (Table[n].count == 0) numsymbols++;
 		  Table[n].count++;
+
 		  totalcount = totalcount + 1.0;
-		  }
+	   }
 	   else printf("Error:  out of bounds character\n");
 	}
 
-	fprintf(fp2,"%d\n",numsymbols);
+	fprintf(output_fp,"%d\n",numsymbols);
+	// go thru all ascii symbols
 	for (i=0; i<256; i++) {
+	   // if ascii symbol exists in table, add it and its freq. to output file
 	   if (Table[i].count > 0) {
-		  fprintf(fp2,"%d  %f\n",i,((float) Table[i].count)/ totalcount);
+		  fprintf(output_fp,"%d  %f\n", int2binInt(i), ( (float)Table[i].count)/ totalcount );
 		  }
 	}
-	fclose(fp1);
-	fclose(fp2);
+	fclose(input_fp);
+	fclose(output_fp);
+
+	return 0;
 }
