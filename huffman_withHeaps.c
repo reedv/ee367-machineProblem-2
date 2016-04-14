@@ -175,7 +175,7 @@ void MinHeap_build(struct MinHeap* minHeap)
  * Creates a min heap of capacity equal to size and inserts all characters from
  * data[] in min heap. Initially size of min heap is equal to capacity
  * */
-struct MinHeap* MinHeap_createAndBuild(char data[], float freq[], int size)
+struct MinHeap* MinHeap_createAndBuild(char data[], int freq[], int size)
 {
     struct MinHeap* minHeap = MinHeap_create(size);
 
@@ -196,7 +196,7 @@ struct MinHeap* MinHeap_createAndBuild(char data[], float freq[], int size)
  *****************************************************/
 
 // The main function that builds Huffman tree
-struct MinHeapNode* buildHuffmanTree(char data[], float freq[], int size)
+struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size)
 {
     struct MinHeapNode *left, *right, *top;
 
@@ -236,7 +236,6 @@ void printArr(int arr[], int n)
 
 // Prints huffman codes from the root of Huffman Tree.
 // Stores codes in codes[]
-// todo: convert function to encode huffman tree, rather then the codewords
 void printCodes(struct MinHeapNode* root, int codes[], int top)
 {
 	//Moves thru tree in preorder
@@ -244,7 +243,7 @@ void printCodes(struct MinHeapNode* root, int codes[], int top)
     // Assign 0 to left edge and recur
     if (root->left)
     {
-        codes[top] = 0;  // todo: change to 1 (to encode as huffman tree internal node)
+        codes[top] = 0;
         printCodes(root->left, codes, top + 1);
     }
 
@@ -259,15 +258,14 @@ void printCodes(struct MinHeapNode* root, int codes[], int top)
     // characters, print the character and its code from codes[]
     if (MinHeapNode_isLeaf(root))
     {
-    	// todo: codes[top] = 0
-        printf("%c: ", root->data);   printArr(codes, top);
-        // todo: prepend code to single binary string (representing the encoded huffman tree)
+        printf("%c:", root->data);
+        printArr(codes, top);
     }
 }
 
 // The main function that builds a Huffman Tree and print codes by traversing
 // the built Huffman Tree
-void HuffmanCodes(char data[], float freq[], int size)
+void HuffmanCodes(char data[], int freq[], int size)
 {
    //  Construct Huffman Tree
    struct MinHeapNode* root = buildHuffmanTree(data, freq, size);
@@ -276,33 +274,19 @@ void HuffmanCodes(char data[], float freq[], int size)
    int arr[MAX_TREE_HT], top = 0;
    printCodes(root, arr, top);
 
-   // TODO: store huffman tree encoded as single binary string
 }
 
 int main(int argc, char *argv[])
 {
-	// Check if there are correct number of arguments
-//	if (argc < 3 || 3 < argc) {
-//	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
-//	   return 1;
-//	}
-
 	FILE *input_fp,
 		 *output_fp;
-
-	//todo: init symbol and freq arrays from the input file
-//	input_fp = fopen(argv[1],"r");
-    char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f'};
-    float freq[] = {0.05, 0.09, 0.12, 0.13, 0.16, 0.45};
+	char symbols[] = { 'a', 'b', 'c', 'd', 'e', 'f' };
+	int freq[] = { 5, 9, 12, 13, 16, 45 };
+//    char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+//    int freq[] = {1, 5, 6, 1, 25, 25, 5, 5};
     int size = sizeof(symbols)/sizeof(symbols[0]);
 
     HuffmanCodes(symbols, freq, size);
-
-    // store huffman tree encoded as single binary string
-
-    // count length of string and store length as a 14-bit binary string
-
-    // write the length and encoded tree to output file
 
     return 0;
 }
