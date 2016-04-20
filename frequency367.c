@@ -36,7 +36,7 @@ int int2binInt(int dec) {
 }
 
 /*
- * stores 9-bit binary representation of input int i in char array buffer
+ * stores 8-bit binary representation of input int i in char array buffer
  */
 void int2binStr(char * binstring_buffer, int dec) {
 	int pos;
@@ -88,11 +88,11 @@ int main(int argc, char *argv[])
 	fprintf(output_fp,"%d\n",numsymbols);
 	// go thru all ascii symbols
 	for (i=0; i<256; i++) {
-	   // if ascii symbol exists in table, add it and its freq. to output file
+	   // if ascii symbol exists in table, add it (as int representation) and its freq. to output file
 	   if (Table[i].count > 0) {
-		  char binstring_buffer[8];
-		  int2binStr(binstring_buffer, i);
-		  fprintf(output_fp,"%s   %f\n", binstring_buffer, ( (float)Table[i].count)/ totalcount );
+		  //char binstring_buffer[8];
+		  //int2binStr(binstring_buffer, i);
+		  fprintf(output_fp,"%d   %f\n", i, ( (float)Table[i].count)/ totalcount );
 		  }
 	}
 	fclose(input_fp);

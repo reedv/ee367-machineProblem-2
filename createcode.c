@@ -254,6 +254,19 @@ void printArr_char(char arr[], int n)
     printf("\n");
 }
 
+/*
+ * A utility function that stores length-bit binary representation of input int i in char array buffer
+ */
+void int2binStr(char binstring_buffer[], int length, int dec) {
+	int pos;
+	for (pos = length-1; pos >= 0; pos--) {
+		if (dec % 2)
+			binstring_buffer[pos] = '1';
+		else binstring_buffer[pos] = '0';
+		dec /= 2;
+	}
+}
+
 // Prints huffman codes from the root of Huffman Tree.
 // Stores codes in codes[]
 // todo: convert function to encode huffman tree, rather then the codewords
@@ -285,12 +298,15 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
     	printf("%c: ", root->data);
     	printArr(codes, top);
 
-        // todo: prepend to encoded huffman string in the form (data)+(codes)
+        // prepend to encoded huffman string in the form (data)+(codes)
+    	// concat leaf encoding to code_buffer
     	int i;
-			for(i=0; i < top; i++) {
-				char encoding_buffer[] = {(char)codes[i] + '0'};
-				strcat(code_buffer, encoding_buffer);
+		for(i=0; i < top; i++) {
+			char encoding_buffer[] = {codes[i] + '0', '\0'};
+			printf("createcodes.c/printCodes: encoding_buffer[0]=%c\n", encoding_buffer[0]);
+			strcat(code_buffer, encoding_buffer);
 		}
+		// concat leaf data to code_buffer
     	char data_buffer[] = {root->data, '\0'};
     	printf("createcodes.c/printCodes: data_buffer[0]=%c\n", data_buffer[0]);
     	strcat(code_buffer, data_buffer);
@@ -316,7 +332,7 @@ void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)  // t
 int main(int argc, char *argv[])
 {
 	// Check if there are correct number of arguments
-//	if (argc < 3 || 3 < argc) {
+//	if (argc != 3) {
 //	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
 //	   return 1;
 //	}
@@ -325,26 +341,40 @@ int main(int argc, char *argv[])
 		 *output_fp;
 
 	//todo: init symbol and freq arrays from the input file
-//	input_fp = fopen(argv[1],"r");
+//	input_fp = fopen(argv[1], "r");
 	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
 	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
 		printf("createcode.c/main Error: symbol and frequency array size mismatch.\n");
 		exit(1);
 	}
-    char code_buffer[10000] = "\0";  // arbitrary size, init. to concat to later
+    char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to concat to later
     int size = sizeof(symbols)/sizeof(symbols[0]);
 
+    // store huffman tree encoding as single binary string
     HuffmanCodes(symbols, freq, code_buffer, size);
     int buffer_size = sizeof(code_buffer)/sizeof(code_buffer[0]);
     printf("** createcodes.c/main: buffer_size = %d\n", buffer_size);
     printArr_char(code_buffer, buffer_size);
 
-    // store huffman tree encoded as single binary string
-
-    // count length of encoded tree string and store length as a 14-bit binary string
+    // count length of encoded tree string (plus 14 extra bits) and store length as a 14-bit binary string
+    int charcount = strlen(code_buffer);
+//    int m;
+//    int charcount = 0;
+//    for(m=0; code_buffer[m]; m++) {
+//        if(code_buffer[m] != ' ' || code_buffer[m] != '\0') {
+//        	printf("** createcode.c/main: code_buffer[m]=%c\n", code_buffer[m]);
+//            charcount ++;
+//        }
+//    }
+    printf("** createcode.c/main: encoding_size (w/out 14-bit extra) = %d\n", charcount);
+    char codesize_buffer[14];
+    int2binStr(codesize_buffer, 14, charcount+14);
+    printArr_char(codesize_buffer, 14);
 
     // prepend the length and encoded tree to output file
+//    output_fp = fopen(argv[2], "w");
 
+//    fclose(output_fp);
     return 0;
 }
