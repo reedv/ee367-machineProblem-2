@@ -331,17 +331,23 @@ void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)  // t
 
 int main(int argc, char *argv[])
 {
-	// Check if there are correct number of arguments
-//	if (argc != 3) {
-//	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
-//	   return 1;
-//	}
+	//Check if there are correct number of arguments
+	if (argc != 3) {
+	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
+	   return 1;
+	}
 
 	FILE *input_fp,
 		 *output_fp;
 
-	//todo: init symbol and freq arrays from the input file
-//	input_fp = fopen(argv[1], "r");
+	//init symbol and freq arrays from the input file
+	input_fp = fopen(argv[1], "r");
+	char in_buff[255];
+	// get number of symbols from input file freq. table
+	fscanf(input_fp, "%s", in_buff);
+	printf("** createcode./main: in_fp, found %s\n", in_buff);  // TODO: convert size-string to int
+
+	// TODO: need to use the given size from the input file to loop thru to convert data from freq table and assign to symbol and freq arrays
 	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
 	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
@@ -350,6 +356,7 @@ int main(int argc, char *argv[])
 	}
     char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to let us concat to later
     int size = sizeof(symbols)/sizeof(symbols[0]);  // will get actual size from the input file
+    fclose(input_fp);
 
     // store huffman tree encoding as single binary string
     HuffmanCodes(symbols, freq, code_buffer, size);
@@ -360,10 +367,10 @@ int main(int argc, char *argv[])
     // count length of encoded tree string (plus 14 extra bits) and store length as a 14-bit binary string
     int charcount = strlen(code_buffer);
     printf("** createcode.c/main: encoding_size (w/out 14-bit extra) = %d\n", charcount+14);
-    char charcount_buffer[15] = "\0";
-    printArr_char(charcount_buffer, charcount+14);  // I think causes overflowing index problem
+    char charcount_buffer[15] = "\0";  // extra char to hold NULL
+    printArr_char(charcount_buffer, charcount+14);  // DEBUG: I think charcount+14 causes overflowing index problem
     int2binStr(charcount_buffer, 14, charcount+14);
-    printArr_char(charcount_buffer, 14+charcount);
+    printArr_char(charcount_buffer, 14+charcount);  // DEBUG: prints as expected if use 14 as size
 
     // prepend the length and encoded tree to output file
     output_fp = fopen(argv[2], "w");
