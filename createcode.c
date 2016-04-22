@@ -255,7 +255,7 @@ void printArr_char(char arr[], int n)
 }
 
 /*
- * A utility function that stores length-bit binary representation of input int i in char array buffer
+ * A utility function that stores length-bit binary representation of int dec in char array buffer
  */
 void int2binStr(char binstring_buffer[], int length, int dec) {
 	int pos;
@@ -348,8 +348,8 @@ int main(int argc, char *argv[])
 		printf("createcode.c/main Error: symbol and frequency array size mismatch.\n");
 		exit(1);
 	}
-    char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to concat to later
-    int size = sizeof(symbols)/sizeof(symbols[0]);
+    char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to let us concat to later
+    int size = sizeof(symbols)/sizeof(symbols[0]);  // will get actual size from the input file
 
     // store huffman tree encoding as single binary string
     HuffmanCodes(symbols, freq, code_buffer, size);
@@ -359,22 +359,23 @@ int main(int argc, char *argv[])
 
     // count length of encoded tree string (plus 14 extra bits) and store length as a 14-bit binary string
     int charcount = strlen(code_buffer);
-//    int m;
-//    int charcount = 0;
-//    for(m=0; code_buffer[m]; m++) {
-//        if(code_buffer[m] != ' ' || code_buffer[m] != '\0') {
-//        	printf("** createcode.c/main: code_buffer[m]=%c\n", code_buffer[m]);
-//            charcount ++;
-//        }
-//    }
-    printf("** createcode.c/main: encoding_size (w/out 14-bit extra) = %d\n", charcount);
-    char codesize_buffer[14];
-    int2binStr(codesize_buffer, 14, charcount+14);
-    printArr_char(codesize_buffer, 14);
+    printf("** createcode.c/main: encoding_size (w/out 14-bit extra) = %d\n", charcount+14);
+    char charcount_buffer[15] = "\0";
+    printArr_char(charcount_buffer, charcount+14);  // I think causes overflowing index problem
+    int2binStr(charcount_buffer, 14, charcount+14);
+    printArr_char(charcount_buffer, 14+charcount);
 
     // prepend the length and encoded tree to output file
-//    output_fp = fopen(argv[2], "w");
-
-//    fclose(output_fp);
+    output_fp = fopen(argv[2], "w");
+    fputs(charcount_buffer, output_fp);
+    fputs("\n", output_fp);
+    fputs(code_buffer, output_fp);
+    fclose(output_fp);
     return 0;
 }
+
+
+
+
+
+
