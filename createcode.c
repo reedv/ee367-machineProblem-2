@@ -315,7 +315,7 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
 
 // The main function that builds a Huffman Tree and print codes by traversing
 // the built Huffman Tree
-void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)  // todo: needs to take a string buffer for encoded tree
+void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)
 {
    //  Construct Huffman Tree
    struct MinHeapNode* root = buildHuffmanTree(data, freq, size);
@@ -325,7 +325,6 @@ void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)  // t
    	   top = 0;
    printCodes(root, arr, top, code_buffer);
 
-   // TODO: store huffman tree encoded as single binary string
 
 }
 
@@ -345,15 +344,30 @@ int main(int argc, char *argv[])
 	char in_buff[255];
 	// get number of symbols from input file freq. table
 	fscanf(input_fp, "%s", in_buff);
-	printf("** createcode./main: in_fp, found %s\n", in_buff);  // TODO: convert size-string to int
+	int table_size = atoi(in_buff);
+	printf("** createcode./main: in_fp, found size %d\n", table_size);
 
 	// TODO: need to use the given size from the input file to loop thru to convert data from freq table and assign to symbol and freq arrays
-	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
-	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
-		printf("createcode.c/main Error: symbol and frequency array size mismatch.\n");
-		exit(1);
+//	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
+//	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
+//	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
+//		printf("createcode.c/main Error: symbol and frequency array size mismatch.\n");
+//		exit(1);
+//	}
+	// fill symbol and freq. arrays from input file
+	int symbols[table_size];
+	float freq[table_size];
+	int i;
+	for(i=0; i < table_size; i++) {
+		fscanf(input_fp, "%s", in_buff);
+		symbols[i] = atoi(in_buff);
+		printf("** createcode.c/main: filling table: i=%d: symbols[i]=%d\n", i, atoi(in_buff));
+
+		fscanf(input_fp, "%s", in_buff);
+		freq[i] = atof(in_buff);
+		printf("** createcode.c/main: filling table: i=%d: freq[i]=%f\n\n", i, atof(in_buff));
 	}
+	exit(1);  //TODO: This is a temp. exit to test ability to properly fill table arrays from input file
     char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to let us concat to later
     int size = sizeof(symbols)/sizeof(symbols[0]);  // will get actual size from the input file
     fclose(input_fp);
