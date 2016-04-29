@@ -33,7 +33,7 @@
 /* A Huffman tree node */
 struct MinHeapNode
 {
-    char data;  // One of the input characters
+    int data;  // One of the input characters
     float freq;  // Frequency of the character
     struct MinHeapNode *left, *right; // Left and right child of this node
 };
@@ -54,7 +54,7 @@ struct MinHeap
 /* A utility function to allocate a new min heap node with
  * given character and frequency of the character
  */
-struct MinHeapNode* MinHeapNode_newNode(char data, float freq)
+struct MinHeapNode* MinHeapNode_newNode(int data, float freq)
 {
 	// init empty MinHeapNode
     struct MinHeapNode* temp =
@@ -187,7 +187,7 @@ void MinHeap_build(struct MinHeap* minHeap)
  * Creates a min heap of capacity equal to size and inserts all characters from
  * data[] in min heap. Initially size of min heap is equal to capacity
  * */
-struct MinHeap* MinHeap_createAndBuild(char data[], float freq[], int size)
+struct MinHeap* MinHeap_createAndBuild(int data[], float freq[], int size)
 {
     struct MinHeap* minHeap = MinHeap_create(size);
 
@@ -208,7 +208,7 @@ struct MinHeap* MinHeap_createAndBuild(char data[], float freq[], int size)
  *****************************************************/
 
 // The main function that builds Huffman tree
-struct MinHeapNode* buildHuffmanTree(char data[], float freq[], int size)
+struct MinHeapNode* buildHuffmanTree(int data[], float freq[], int size)
 {
     struct MinHeapNode *left, *right, *top;
 
@@ -295,7 +295,7 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
     	printf("** createcodes.c/printCodes: isLeaf reached\n");
     	//top++;
     	//codes[top] = 0;
-    	printf("%c: ", root->data);
+    	printf("%d: ", root->data);
     	printArr(codes, top);
 
         // prepend to encoded huffman string in the form (data)+(codes)
@@ -303,19 +303,20 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
     	int i;
 		for(i=0; i < top; i++) {
 			char encoding_buffer[] = {codes[i] + '0', '\0'};
-			printf("createcodes.c/printCodes: encoding_buffer[0]=%c\n", encoding_buffer[0]);
+			printf("createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
 			strcat(code_buffer, encoding_buffer);
 		}
 		// concat leaf data to code_buffer
-    	char data_buffer[] = {root->data, '\0'};
-    	printf("createcodes.c/printCodes: data_buffer[0]=%c\n", data_buffer[0]);
+    	char data_buffer[10];  //fixme: This is just for testing w/ decimal ints, need to change for binary
+    	sprintf(data_buffer, "%d", root->data);
+    	printf("createcodes.c/printCodes: data_buffer=%s\n", data_buffer);
     	strcat(code_buffer, data_buffer);
     }
 }
 
 // The main function that builds a Huffman Tree and print codes by traversing
 // the built Huffman Tree
-void HuffmanCodes(char data[], float freq[], char code_buffer[], int size)
+void HuffmanCodes(int data[], float freq[], char code_buffer[], int size)
 {
    //  Construct Huffman Tree
    struct MinHeapNode* root = buildHuffmanTree(data, freq, size);
@@ -344,10 +345,9 @@ int main(int argc, char *argv[])
 	char in_buff[255];
 	// get number of symbols from input file freq. table
 	fscanf(input_fp, "%s", in_buff);
-	int table_size = atoi(in_buff);
-	printf("** createcode./main: in_fp, found size %d\n", table_size);
+	int size = atoi(in_buff);
+	printf("** createcode./main: in_fp, found size %d\n", size);
 
-	// TODO: need to use the given size from the input file to loop thru to convert data from freq table and assign to symbol and freq arrays
 //	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 //	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
 //	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
@@ -355,10 +355,10 @@ int main(int argc, char *argv[])
 //		exit(1);
 //	}
 	// fill symbol and freq. arrays from input file
-	int symbols[table_size];
-	float freq[table_size];
+	int symbols[size];
+	float freq[size];
 	int i;
-	for(i=0; i < table_size; i++) {
+	for(i=0; i < size; i++) {
 		fscanf(input_fp, "%s", in_buff);
 		symbols[i] = atoi(in_buff);
 		printf("** createcode.c/main: filling table: i=%d: symbols[i]=%d\n", i, atoi(in_buff));
@@ -367,9 +367,7 @@ int main(int argc, char *argv[])
 		freq[i] = atof(in_buff);
 		printf("** createcode.c/main: filling table: i=%d: freq[i]=%f\n\n", i, atof(in_buff));
 	}
-	exit(1);  //TODO: This is a temp. exit to test ability to properly fill table arrays from input file
     char code_buffer[10000] = "\0";  // arbitrary size, init. with NULL char to let us concat to later
-    int size = sizeof(symbols)/sizeof(symbols[0]);  // will get actual size from the input file
     fclose(input_fp);
 
     // store huffman tree encoding as single binary string
@@ -386,7 +384,7 @@ int main(int argc, char *argv[])
     int2binStr(charcount_buffer, 14, charcount+14);
     printArr_char(charcount_buffer, 14+charcount);  // DEBUG: prints as expected if use 14 as size
 
-    // prepend the length and encoded tree to output file
+    // append the length and encoded tree to output file
     output_fp = fopen(argv[2], "w");
     fputs(charcount_buffer, output_fp);
     fputs("\n", output_fp);
