@@ -277,7 +277,7 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
     // Assign 0 to left edge and recur
     if (root->left)
     {
-        codes[top] = 0;
+        codes[top] = 1;
         printCodes(root->left, codes, top + 1, code_buffer);
     }
 
@@ -288,17 +288,18 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
         printCodes(root->right, codes, top + 1, code_buffer);
     }
 
-    // If this is a leaf node, then it contains one of the input
-    // characters, print the character and its code from codes[]
+    /* If this is a leaf node, then it contains one of the input
+     * characters, print the character and its code from codes[]
+     */
     if (MinHeapNode_isLeaf(root))
     {
     	printf("** createcodes.c/printCodes: isLeaf reached\n");
-    	//top++;
-    	//codes[top] = 0;
+    	top++;
+    	codes[top] = 0;  // prepending inserting 0 between encoding and data in huffman encoding
     	printf("%d: ", root->data);
     	printArr(codes, top);
 
-        // prepend to encoded huffman string in the form (data)+(codes)
+        /* prepend to encoded huffman string in the form <data><codes> */
     	// concat leaf encoding to code_buffer
     	int i;
 		for(i=0; i < top; i++) {
@@ -306,10 +307,11 @@ void printCodes(struct MinHeapNode* root, int codes[], int top, char code_buffer
 			printf("createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
 			strcat(code_buffer, encoding_buffer);
 		}
-		// concat leaf data to code_buffer
-    	char data_buffer[10];  //fixme: This is just for testing w/ decimal ints, need to change for binary
-    	sprintf(data_buffer, "%d", root->data);
-    	printf("createcodes.c/printCodes: data_buffer=%s\n", data_buffer);
+		// concat leaf data to code_buffer as 8-bit binary string
+    	char data_buffer[9];  // need room or NULL char at end
+    	int2binStr(data_buffer, 8, root->data);
+    	data_buffer[8] = '\0';
+    	printf("createcodes.c/printCodes: data=%d converted to data_buffer=%s\n\n", root->data, data_buffer);
     	strcat(code_buffer, data_buffer);
     }
 }
@@ -348,12 +350,6 @@ int main(int argc, char *argv[])
 	int size = atoi(in_buff);
 	printf("** createcode./main: in_fp, found size %d\n", size);
 
-//	char symbols[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-//	float freq[] = {0.7, 0.2, 0.1, 0.3, 0.4, 0.5, 0.8, 0.6};
-//	if(sizeof(symbols)/sizeof(symbols[0]) != sizeof(freq)/sizeof(freq[0])) {
-//		printf("createcode.c/main Error: symbol and frequency array size mismatch.\n");
-//		exit(1);
-//	}
 	// fill symbol and freq. arrays from input file
 	int symbols[size];
 	float freq[size];
