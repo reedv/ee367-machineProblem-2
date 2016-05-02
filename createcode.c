@@ -278,7 +278,6 @@ void printCodes(struct MinHeapNode* root, char code_buffer[])
          return;
 
     /* first print data of node */
-    printf("%d ", root->data);
     // if leaf then print data
     if (MinHeapNode_isLeaf(root))
 	{
@@ -293,14 +292,14 @@ void printCodes(struct MinHeapNode* root, char code_buffer[])
 		sprintf(data_buffer, "%d", root->data);  // For debugging: Shows data as decimal int
 //    	int2binStr(data_buffer, 8, root->data);  // FIXME: Uncomment these two line and recomment debug line
 //    	data_buffer[8] = '\0';
-		printf("createcodes.c/printCodes: data=%d converted to data_buffer=%s\n\n", root->data, data_buffer);
+		printf("** createcodes.c/printCodes: data=%d converted to data_buffer=%s\n\n", root->data, data_buffer);
 		strcat(code_buffer, data_buffer);
 	}
     // else print 1
     else
     {
 		char encoding_buffer[] = "1";
-		printf("createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
+		printf("** createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
 		strcat(code_buffer, encoding_buffer);
     }
 
@@ -309,49 +308,6 @@ void printCodes(struct MinHeapNode* root, char code_buffer[])
 
     /* now recur on right subtree */
     printCodes(root->right, code_buffer);
-
-
-//    // Assign 0 to left edge and recur
-//    if (root->left)
-//    {
-//        // prepend edge to code_buffer
-//    	char encoding_buffer[] = "1";  // For debugging: Set to "0" to see proper huffman codeword
-//    	printf("createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
-//    	strcat(code_buffer, encoding_buffer);
-//
-//        printCodes(root->left, code_buffer);
-//    }
-//
-//    // Assign 1 to right edge and recur
-//    if (root->right)
-//    {
-//        // prepend edge to code_buffer
-//    	char encoding_buffer[] = "1";
-//		printf("createcodes.c/printCodes: encoding_buffer=%s\n", encoding_buffer);
-//		strcat(code_buffer, encoding_buffer);
-//
-//        printCodes(root->right, code_buffer);
-//    }
-//
-//    /* If this is a leaf node, then it contains one of the input
-//     * characters, print the character and its code from codes[]
-//     */
-//    if (MinHeapNode_isLeaf(root))
-//    {
-//    	printf("** createcodes.c/printCodes: isLeaf reached\n");
-//    	char encoding_buffer[] = "0";
-//    	strcat(code_buffer, encoding_buffer);
-//    	printf("%d: ", root->data);
-//
-//        /* prepend to encoded huffman string data */
-//		// concat leaf data to code_buffer as 8-bit binary string
-//    	char data_buffer[9];  // need room or NULL char at end
-//    	sprintf(data_buffer, "%d", root->data);  // For debugging: Shows data as decimal int
-////    	int2binStr(data_buffer, 8, root->data);  // FIXME: Uncomment these two line and recomment debug line
-////    	data_buffer[8] = '\0';
-//    	printf("createcodes.c/printCodes: data=%d converted to data_buffer=%s\n\n", root->data, data_buffer);
-//    	strcat(code_buffer, data_buffer);
-//    }
 }
 
 // The main function that builds a Huffman Tree and print codes by traversing
