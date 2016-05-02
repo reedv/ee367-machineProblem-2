@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
     //int pre[] = {10, 5, 1, 7, 40, 50};
 
 	// reconstruct huffman tree from preorder encoding
-	int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};
+	int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};  // size=20
     //int size = sizeof( pre ) / sizeof( pre[0] );
     //printf("** encode.c/main: size=%d\n", size);
 
@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 	char in_buff[MAX_WORD_LENGTH];
 	fscanf(input_fp, "%s", in_buff);
 	int size = binInt2decInt(atoi(in_buff));
-	printf("** encode.c/main: in_fp, found size = %d = %d\n", size, int2binInt(size));
+	printf("** encode.c/main: in_fp, found size = %d = %d: size-14 = %d\n", size, int2binInt(size), size-14);
 	size = size - 14;
 
 	// get rid of newline char so we can read in char-by-char later.
@@ -312,15 +312,51 @@ int main(int argc, char *argv[])
 
 	// fill preorder stream from input file
 	int pre_stream[size];
+	int is_data = 0;
 	int k;
 	for(k=0; k < size; k++) {
-		fscanf(input_fp, "%c", in_buff);
-		in_buff[1] = '\0';
-		pre_stream[k] = atoi(in_buff);
-		printf("** encode.c/main: filling stream: k=%d: symbols[k]=%d\n", k, pre_stream[k]);
+		// if encounter a data value
+		if(is_data)
+		{
+			fscanf(input_fp, "%8s", in_buff);
+			// convert 8-bit binary string to decimal int
+			pre_stream[k] = binInt2decInt(atoi(in_buff));
+
+			is_data = 0;
+
+			// recalculate size (8-bit binary has been converted to some decimal)
+			// size = 8 - (length of decimal string)
+//			int n = pre_stream[k],
+//				decimal_len = 0;
+//			while(n != 0)
+//			{
+//				n/=10;
+//				++decimal_len;
+//			}
+
+			size = size - (8 /*- decimal_len*/);
+		}
+		else {
+			fscanf(input_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
+
+			// if encounter a 1, add to preorder stream as internal node
+			if(strcmp(in_buff, "1") == 0)
+				pre_stream[k] = atoi(in_buff);
+
+			// if encounter a 0, remember that next item is an 8-bit data value
+			if(strcmp(in_buff, "0") == 0)
+			{
+				pre_stream[k] = atoi(in_buff);
+				is_data = 1;
+			}
+		}
+
+		printf("** encode.c/main: filling stream: k=%d: pre_stream[%d]=%d\n", k, k, pre_stream[k]);
 	}
+	printf("** encode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), k);
+	size = k;  // This works somehow, see folderpaper note attached to assignment
+
 	fclose(input_fp);
-	exit(1);  // FIXME: Remove: this is just for debugging
 
     /* reconstruct Huffman tree from preorder stream */
     struct Node * root = reconstructPre(pre, size);

@@ -289,9 +289,9 @@ void printCodes(struct MinHeapNode* root, char code_buffer[])
 		/* prepend to encoded huffman string data */
 		// concat leaf data to code_buffer as 8-bit binary string
 		char data_buffer[9];  // need room or NULL char at end
-		sprintf(data_buffer, "%d", root->data);  // For debugging: Shows data as decimal int
-//    	int2binStr(data_buffer, 8, root->data);  // FIXME: Uncomment these two line and recomment debug line
-//    	data_buffer[8] = '\0';
+//		sprintf(data_buffer, "%d", root->data);  // For debugging: Shows data as decimal int
+    	int2binStr(data_buffer, 8, root->data);  // FIXME: Uncomment these two lines and recomment debug line
+    	data_buffer[8] = '\0';
 		printf("** createcodes.c/printCodes: data=%d converted to data_buffer=%s\n\n", root->data, data_buffer);
 		strcat(code_buffer, data_buffer);
 	}
