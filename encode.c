@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 // This constant can be avoided by explicitly calculating height of Huffman Tree
 #define MAX_WORD_LENGTH 256
@@ -99,6 +100,45 @@ void printArr_char(char arr[], int n)
     printf("\n");
 }
 
+/*
+ * recursively builds a binary representation of an int (as an int)
+ */
+int int2binInt(int dec) {
+	if (dec == 0) return 0;
+	if (dec == 1) return 1;
+	return (dec % 2) + 10*int2binInt(dec/2);
+}
+
+/*
+ * stores 8-bit binary representation of input int i in char array buffer
+ */
+void int2binStr(char * binstring_buffer, int dec) {
+	int pos;
+	for (pos = 7; pos >= 0; pos--) {
+		if (dec % 2)
+			binstring_buffer[pos] = '1';
+		else binstring_buffer[pos] = '0';
+		dec /= 2;
+	}
+}
+
+/* Function to convert binary (int) to decimal (int)*/
+int binInt2decInt(int bin)
+{
+    int decimal=0,
+    	i=0,
+		rem;
+
+    while(bin != 0)
+    {
+        rem = bin % 10;
+        bin /= 10;
+        decimal += rem * pow(2,i);
+        i++;
+    }
+
+    return decimal;
+}
 
 
 /*******************************
@@ -225,7 +265,7 @@ void fillCodebook(struct Node * root, struct CodeEntry codebook[], int code_buff
 
 
 // Driver program to test above functions
-int main()
+int main(int argc, char *argv[])
 {
 	//    10
 	//   /   \
@@ -236,12 +276,51 @@ int main()
 
 	// reconstruct huffman tree from preorder encoding
 	int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};
-    int size = sizeof( pre ) / sizeof( pre[0] );
-    printf("** encode.c/main: size=%d\n", size);
+    //int size = sizeof( pre ) / sizeof( pre[0] );
+    //printf("** encode.c/main: size=%d\n", size);
 
     // TODO:
     // read in 2nd field of encoded Huffman tree file to build preorder array, pre, of tree
     // the size of pre can be found using the 1st field of the encoding file: (its value) - 14
+
+    /* Build preorder stream from input encoded Huffman tree*/
+    //Check if there are correct number of arguments
+	if (argc != 3) {
+	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
+	   return 1;
+	}
+
+	FILE *input_fp,
+		 *output_fp;
+
+	// get size of preorder stream
+	input_fp = fopen(argv[1], "r");
+	char in_buff[MAX_WORD_LENGTH];
+	fscanf(input_fp, "%s", in_buff);
+	int size = binInt2decInt(atoi(in_buff));
+	printf("** encode.c/main: in_fp, found size = %d = %d\n", size, int2binInt(size));
+	size = size - 14;
+
+	// get rid of newline char so we can read in char-by-char later.
+	// From http://www.cplusplus.com/reference/cstdio/fscanf/:
+	// Whitespace character: the function will read and ignore any whitespace characters
+	// encountered before the next non-whitespace character (whitespace characters include spaces,
+	// newline and tab characters -- see isspace). A single whitespace in the format string validates
+	// any quantity of whitespace characters extracted from the stream (including none).
+	fscanf(input_fp, "%c", in_buff);
+	printf("** encode.c/main: reading newline from input file: %s\n", in_buff);
+
+	// fill preorder stream from input file
+	int pre_stream[size];
+	int k;
+	for(k=0; k < size; k++) {
+		fscanf(input_fp, "%c", in_buff);
+		in_buff[1] = '\0';
+		pre_stream[k] = atoi(in_buff);
+		printf("** encode.c/main: filling stream: k=%d: symbols[k]=%d\n", k, pre_stream[k]);
+	}
+	fclose(input_fp);
+	exit(1);  // FIXME: Remove: this is just for debugging
 
     /* reconstruct Huffman tree from preorder stream */
     struct Node * root = reconstructPre(pre, size);
