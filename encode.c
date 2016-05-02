@@ -19,7 +19,7 @@
  */
 
 
-
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -185,6 +185,8 @@ struct Node * reconstructPreUtil(int pre[], int * preIndex, int size)
 		// return the leaf
 		return root;
 	}
+
+	return NULL;  // FIXME: This should never be reachable by virtue of the form of the input data (can delete this line)
 }
 
 struct Node * reconstructPre(int pre[], int size)
@@ -275,28 +277,26 @@ int main(int argc, char *argv[])
     //int pre[] = {10, 5, 1, 7, 40, 50};
 
 	// reconstruct huffman tree from preorder encoding
-	int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};  // size=20
+	//int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};  // size=20
     //int size = sizeof( pre ) / sizeof( pre[0] );
     //printf("** encode.c/main: size=%d\n", size);
 
-    // TODO:
-    // read in 2nd field of encoded Huffman tree file to build preorder array, pre, of tree
-    // the size of pre can be found using the 1st field of the encoding file: (its value) - 14
 
     /* Build preorder stream from input encoded Huffman tree*/
     //Check if there are correct number of arguments
-	if (argc != 3) {
-	   printf("Usage:  createcode <input list file> <output encoded huffman file>\n");
+	if (argc != 4) {
+	   printf("Usage: ./encode367 <input encoding file> <input data file> <output compressed data file>\n");
 	   return 1;
 	}
 
-	FILE *input_fp,
+	FILE *input_encoding_fp,
+		 *input_data_fp,
 		 *output_fp;
 
 	// get size of preorder stream
-	input_fp = fopen(argv[1], "r");
+	input_encoding_fp = fopen(argv[1], "r");
 	char in_buff[MAX_WORD_LENGTH];
-	fscanf(input_fp, "%s", in_buff);
+	fscanf(input_encoding_fp, "%s", in_buff);
 	int size = binInt2decInt(atoi(in_buff));
 	printf("** encode.c/main: in_fp, found size = %d = %d: size-14 = %d\n", size, int2binInt(size), size-14);
 	size = size - 14;
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 	// encountered before the next non-whitespace character (whitespace characters include spaces,
 	// newline and tab characters -- see isspace). A single whitespace in the format string validates
 	// any quantity of whitespace characters extracted from the stream (including none).
-	fscanf(input_fp, "%c", in_buff);
+	fscanf(input_encoding_fp, "%c", in_buff);
 	printf("** encode.c/main: reading newline from input file: %s\n", in_buff);
 
 	// fill preorder stream from input file
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 		// if encounter a data value
 		if(is_data)
 		{
-			fscanf(input_fp, "%8s", in_buff);
+			fscanf(input_encoding_fp, "%8s", in_buff);
 			// convert 8-bit binary string to decimal int
 			pre_stream[k] = binInt2decInt(atoi(in_buff));
 
@@ -337,7 +337,7 @@ int main(int argc, char *argv[])
 			size = size - (8 /*- decimal_len*/);
 		}
 		else {
-			fscanf(input_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
+			fscanf(input_encoding_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
 
 			// if encounter a 1, add to preorder stream as internal node
 			if(strcmp(in_buff, "1") == 0)
@@ -356,10 +356,10 @@ int main(int argc, char *argv[])
 	printf("** encode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), k);
 	size = k;  // This works somehow, see folderpaper note attached to assignment
 
-	fclose(input_fp);
+	fclose(input_encoding_fp);
 
     /* reconstruct Huffman tree from preorder stream */
-    struct Node * root = reconstructPre(pre, size);
+    struct Node * root = reconstructPre(pre_stream, size);
 
     printf("** encode.c/main: Preorder traversal of reconstructed Huffman tree\n");
     printPreorder(root);
@@ -391,6 +391,29 @@ int main(int argc, char *argv[])
     	}
     }
 
+
+    /* Compress input data file using generated codebook */
+    input_data_fp = fopen(argv[2], "r");
+    output_fp = fopen(argv[3], "w");
+
+    // go thru each character (or string length-1) of input data file and replace with codeword in output
+    int n;
+    while ((n=fgetc(input_data_fp)) != EOF) {
+    	   // check that char from input file is valid acsii char
+    	   if (n>=0 && n<256) {
+    		  // check if this symbol has valid codeword in codebook
+    		  printf("** encode.c/main: input data ascii char = %d\n", n);
+    		  if(codebook[n].valid == 1)
+    		  {
+    			  printf("** encode.c/main: codebook[n=%d] = %s\n\n", n, codebook[n].codeword);
+    			  fputs(codebook[n].codeword, output_fp);
+    		  }
+    	   }
+    	   else printf("** encode.c/main: Error:  out of bounds character\n");
+    	}
+
+    fclose(input_data_fp);
+    fclose(output_fp);
 
     return 0;
 }
