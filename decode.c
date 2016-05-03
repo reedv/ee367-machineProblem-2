@@ -308,14 +308,15 @@ int main(int argc, char *argv[])
 	// fill preorder stream from input file
 	int pre_stream[size];
 	int is_data = 0;
-	int k;
-	for(k=0; k < size; k++) {
+	int chunk_head,		// index of front of current chunk of the stream
+		chunk_count;  // since think of stream of 1s, 0s, and 8-bit chunks
+	for(chunk_head=chunk_count=0; chunk_head < size; chunk_head++, chunk_count++) {
 		// if encounter a data value
 		if(is_data)
 		{
 			fscanf(input_encodedTree_fp, "%8s", in_buff);
 			// convert 8-bit binary string to decimal int
-			pre_stream[k] = binInt2decInt(atoi(in_buff));
+			pre_stream[chunk_count] = binInt2decInt(atoi(in_buff));
 
 			is_data = 0;
 
@@ -329,27 +330,28 @@ int main(int argc, char *argv[])
 //				++decimal_len;
 //			}
 
-			size = size - (8 /*- decimal_len*/);
+			//size = size - (8 /*- decimal_len*/);
+			chunk_head+=7;
 		}
 		else {
 			fscanf(input_encodedTree_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
 
 			// if encounter a 1, add to preorder stream as internal node
 			if(strcmp(in_buff, "1") == 0)
-				pre_stream[k] = atoi(in_buff);
+				pre_stream[chunk_count] = atoi(in_buff);
 
 			// if encounter a 0, remember that next item is an 8-bit data value
 			if(strcmp(in_buff, "0") == 0)
 			{
-				pre_stream[k] = atoi(in_buff);
+				pre_stream[chunk_count] = atoi(in_buff);
 				is_data = 1;
 			}
 		}
 
-		printf("** decode.c/main: filling stream: k=%d: pre_stream[%d]=%d\n", k, k, pre_stream[k]);
+		printf("** encode.c/main: filling stream: k=%d: pre_stream[%d]=%d\n", chunk_head, chunk_head, pre_stream[chunk_count]);
 	}
-	printf("** decode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), k);
-	size = k;  // This works somehow, see folderpaper note attached to assignment
+	printf("** encode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), chunk_head);
+	size = chunk_count;  // This works somehow, see folderpaper note attached to assignment
 
 	fclose(input_encodedTree_fp);
 
