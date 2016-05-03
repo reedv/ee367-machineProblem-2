@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
 	int pre_stream[size];
 	int is_data = 0;
 	int chunk_head,		// index of front of current chunk of the stream
-		chunk_count;  // since think of stream of 1s, 0s, and 8-bit chunks
+		chunk_count;  	// since think of stream of 1s, 0s, and 8-bit chunks
 	for(chunk_head=chunk_count=0; chunk_head < size; chunk_head++, chunk_count++) {
 		// if encounter a data value
 		if(is_data)
@@ -319,18 +319,6 @@ int main(int argc, char *argv[])
 			pre_stream[chunk_count] = binInt2decInt(atoi(in_buff));
 
 			is_data = 0;
-
-			// recalculate size (8-bit binary has been converted to some decimal)
-			// size = 8 - (length of decimal string)
-//			int n = pre_stream[k],
-//				decimal_len = 0;
-//			while(n != 0)
-//			{
-//				n/=10;
-//				++decimal_len;
-//			}
-
-			//size = size - (8 /*- decimal_len*/);
 			chunk_head+=7;
 		}
 		else {
