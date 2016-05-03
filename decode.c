@@ -1,21 +1,22 @@
 /*
- * encode.c
+ * decode.c
  *
- *  Created on: Apr 30, 2016
+ *  Created on: May 2, 2016
  *      Author: reedvilanueva
  */
 
 
+
 /*
  * Input:	Encoded Huffman tree file (from createcode.c)
- * 			Original data file (that tree is based on) to be encoded
+ * 			Compressed data file (that encoded tree was used for) to be decoded
  *
  * Output: a compressed version of the data file based on the encoded Huffman tree
  *
  *
  * To run the program:
  *
- * ./encode367 <input codebook file> <input data file>  <output file>
+ * ./decode367 <input codebook file> <input compressed-data file>  <output decompressed file>
  */
 
 
@@ -151,7 +152,7 @@ struct Node * reconstructPreUtil(int pre[], int * preIndex, int size)
 	// Base case
 	if (*preIndex >= size)
 	{
-		printf("** encode.c/reconstructPreUtil: base reached\n");
+		printf("** decode.c/reconstructPreUtil: base reached\n");
 		return NULL;
 	}
 
@@ -162,11 +163,11 @@ struct Node * reconstructPreUtil(int pre[], int * preIndex, int size)
 	if (root->data == 1)
 	{
 		// continue building in preorder fashion
-		printf("** encode.c/reconstructPreUtil: preindex=%d, root->data = %d\n", *preIndex, root->data);
+		printf("** decode.c/reconstructPreUtil: preindex=%d, root->data = %d\n", *preIndex, root->data);
 		*preIndex = *preIndex + 1;
-		printf("** encode.c/reconstructPreUtil: going left\n");
+		printf("** decode.c/reconstructPreUtil: going left\n");
 		root->left = reconstructPreUtil(pre, preIndex, size);
-		printf("** encode.c/reconstructPreUtil: going right\n");
+		printf("** decode.c/reconstructPreUtil: going right\n");
 		root ->right = reconstructPreUtil(pre, preIndex, size);
 
 		// return this internal Node
@@ -178,7 +179,7 @@ struct Node * reconstructPreUtil(int pre[], int * preIndex, int size)
 		// jump to next elem (the data for the leaf)
 		*preIndex = *preIndex + 1;
 		struct Node * root = newNode(pre[*preIndex]);
-		printf("** encode.c/reconstructPreUtil: preindex=%d, root->data = %d\n", *preIndex, root->data);
+		printf("** decode.c/reconstructPreUtil: preindex=%d, root->data = %d\n", *preIndex, root->data);
 		root->left = root->right = NULL;
 		*preIndex = *preIndex + 1;
 
@@ -204,7 +205,7 @@ void printPreorder (struct Node* node)
 
     printf("%d ", node->data);
     if (isLeaf(node))
-		printf("** encode.c/printPreorder: leaf reached\n");
+		printf("** decode.c/printPreorder: leaf reached\n");
 
     printPreorder(node->left);
     printPreorder(node->right);
@@ -220,12 +221,12 @@ void printPreorder (struct Node* node)
 
 void fillCodebook(struct Node * root, struct CodeEntry codebook[], int code_buff[], int top)
 {
-	printf("** encode.c/fillcodebook: root->data=%d\n", root->data);
+	printf("** decode.c/fillcodebook: root->data=%d\n", root->data);
 	// Assign 0 to left edge and recur
 	if (root->left)
 	{
 		code_buff[top] = 0;
-		printf("** encode.c/fillcodebook: going left, code_buff[top=%d]=%d\n", top, code_buff[top]);
+		printf("** decode.c/fillcodebook: going left, code_buff[top=%d]=%d\n", top, code_buff[top]);
 		fillCodebook(root->left, codebook, code_buff, top+1);  // NOTE: ++a != a++
 	}
 
@@ -233,7 +234,7 @@ void fillCodebook(struct Node * root, struct CodeEntry codebook[], int code_buff
 	if (root->right)
 	{
 		code_buff[top] = 1;
-		printf("** encode.c/fillcodebook: going right, code_buff[top=%d]=%d\n", top, code_buff[top]);
+		printf("** decode.c/fillcodebook: going right, code_buff[top=%d]=%d\n", top, code_buff[top]);
 		fillCodebook(root->right, codebook, code_buff, top+1);
 	}
 
@@ -253,10 +254,10 @@ void fillCodebook(struct Node * root, struct CodeEntry codebook[], int code_buff
 		for (i=0 ; i < top ; i++)
 		{
 		    code_buff_chars[i] = code_buff[i] + '0';
-		    printf("** encode.c/fillcodebook/leaf: code_buff_chars[%d]=%c\n", i, code_buff_chars[i]);
+		    printf("** decode.c/fillcodebook/leaf: code_buff_chars[%d]=%c\n", i, code_buff_chars[i]);
 		}
 		code_buff_chars[top] = '\0';
-		printf("** encode.c/fillcodebook/leaf: code_buff_chars=%s\n", code_buff_chars);
+		printf("** decode.c/fillcodebook/leaf: code_buff_chars=%s\n", code_buff_chars);
 		strcpy(codebook[root->data].codeword, code_buff_chars);
 
 		codebook[root->data].length = strlen(code_buff_chars);
@@ -269,36 +270,30 @@ void fillCodebook(struct Node * root, struct CodeEntry codebook[], int code_buff
 // Driver program to test above functions
 int main(int argc, char *argv[])
 {
-	//    10
-	//   /   \
-	//  5     40
-	// /  \      \
-	//1    7      50
-    //int pre[] = {10, 5, 1, 7, 40, 50};
-
-	// reconstruct huffman tree from preorder encoding
-	//int pre[] = {1, 1, 0, 32, 1, 0, 101, 1, 0, 84, 0, 104, 1, 0, 115, 1, 0, 105, 0, 116};  // size=20
-    //int size = sizeof( pre ) / sizeof( pre[0] );
-    //printf("** encode.c/main: size=%d\n", size);
-
-
     /* Build preorder stream from input encoded Huffman tree*/
     //Check if there are correct number of arguments
 	if (argc != 4) {
-	   printf("Usage: ./encode367 <input encoding file> <input data file> <output compressed data file>\n");
+	   printf("Usage: ./decode367 <input encoding file> <input data file> <output compressed data file>\n");
 	   return 1;
 	}
 
-	FILE *input_encoding_fp,
-		 *input_data_fp,
+	FILE *input_encodedTree_fp,
+		 *input_encodedData_fp,
 		 *output_fp;
 
 	// get size of preorder stream
-	input_encoding_fp = fopen(argv[1], "r");
+	input_encodedTree_fp = fopen(argv[1], "r");
+	if (input_encodedTree_fp == NULL)
+	{
+		printf("** decode.c/main: File failed to open: %s\n", argv[1]);
+		fclose (input_encodedTree_fp);
+		exit(1);
+	}
+
 	char in_buff[MAX_WORD_LENGTH];
-	fscanf(input_encoding_fp, "%s", in_buff);
+	fscanf(input_encodedTree_fp, "%s", in_buff);
 	int size = binInt2decInt(atoi(in_buff));
-	printf("** encode.c/main: in_fp, found size = %d = %d: size-14 = %d\n", size, int2binInt(size), size-14);
+	printf("** decode.c/main: in_fp, found size = %d = %d: size-14 = %d\n", size, int2binInt(size), size-14);
 	size = size - 14;
 
 	// get rid of newline char so we can read in char-by-char later.
@@ -307,8 +302,8 @@ int main(int argc, char *argv[])
 	// encountered before the next non-whitespace character (whitespace characters include spaces,
 	// newline and tab characters -- see isspace). A single whitespace in the format string validates
 	// any quantity of whitespace characters extracted from the stream (including none).
-	fscanf(input_encoding_fp, "%c", in_buff);
-	printf("** encode.c/main: reading newline from input file: %s\n", in_buff);
+	fscanf(input_encodedTree_fp, "%c", in_buff);
+	printf("** decode.c/main: reading newline from input file: %s\n", in_buff);
 
 	// fill preorder stream from input file
 	int pre_stream[size];
@@ -318,7 +313,7 @@ int main(int argc, char *argv[])
 		// if encounter a data value
 		if(is_data)
 		{
-			fscanf(input_encoding_fp, "%8s", in_buff);
+			fscanf(input_encodedTree_fp, "%8s", in_buff);
 			// convert 8-bit binary string to decimal int
 			pre_stream[k] = binInt2decInt(atoi(in_buff));
 
@@ -337,7 +332,7 @@ int main(int argc, char *argv[])
 			size = size - (8 /*- decimal_len*/);
 		}
 		else {
-			fscanf(input_encoding_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
+			fscanf(input_encodedTree_fp, "%1s", in_buff);  // using %c does not append terminating char; would need in_buff[1]='\0'
 
 			// if encounter a 1, add to preorder stream as internal node
 			if(strcmp(in_buff, "1") == 0)
@@ -351,17 +346,17 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		printf("** encode.c/main: filling stream: k=%d: pre_stream[%d]=%d\n", k, k, pre_stream[k]);
+		printf("** decode.c/main: filling stream: k=%d: pre_stream[%d]=%d\n", k, k, pre_stream[k]);
 	}
-	printf("** encode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), k);
+	printf("** decode.c/main: size = %d = %d: k=%d\n", size, int2binInt(size), k);
 	size = k;  // This works somehow, see folderpaper note attached to assignment
 
-	fclose(input_encoding_fp);
+	fclose(input_encodedTree_fp);
 
     /* reconstruct Huffman tree from preorder stream */
     struct Node * root = reconstructPre(pre_stream, size);
 
-    printf("** encode.c/main: Preorder traversal of reconstructed Huffman tree\n");
+    printf("** decode.c/main: Preorder traversal of reconstructed Huffman tree\n");
     printPreorder(root);
 
     /* build codebook array from preorder traversal of reconstructed tree */
@@ -378,7 +373,7 @@ int main(int argc, char *argv[])
 	}
     fillCodebook(root, codebook, code_buff, top);
 
-    printf("** encode.c/main: Filled codebook\n");
+    printf("** decode.c/main: Filled codebook\n");
     int j;
     for(j=0; j < MAX_WORD_LENGTH; j++)
     {
@@ -393,35 +388,53 @@ int main(int argc, char *argv[])
 
 
     /* Compress input data file using generated codebook */
-    input_data_fp = fopen(argv[2], "r");
+    input_encodedData_fp = fopen(argv[2], "r");
     output_fp = fopen(argv[3], "w");
-
-    // go thru each character (or string length-1) of input data file and replace with codeword in output
-    int n;
-    while ((n=fgetc(input_data_fp)) != EOF) {
-    	   // check that char from input file is valid acsii char
-    	   if (n>=0 && n<256) {
-    		  // check if this symbol has valid codeword in codebook
-    		  printf("** encode.c/main: input data ascii char = %d\n", n);
-    		  if(codebook[n].valid == 1)
-    		  {
-    			  printf("** encode.c/main: codebook[n=%d] = %s\n\n", n, codebook[n].codeword);
-    			  fputs(codebook[n].codeword, output_fp);
-    		  }
-    	   }
-    	   else printf("** encode.c/main: Error:  out of bounds character\n");
+    input_encodedTree_fp = fopen(argv[1], "r");
+    	if (input_encodedTree_fp == NULL || output_fp == NULL)
+    	{
+    		printf("** decode.c/main: Files failed to open\n");
+    		fclose (input_encodedData_fp);
+    		fclose(output_fp);
+    		exit(1);
     	}
 
-    fclose(input_data_fp);
+    // go thru each character (or string length-1) to build codeword to add actual to output file (from codebook)
+    char codeword[MAX_WORD_LENGTH] = "\0";
+    int n;
+    while ((n=fgetc(input_encodedData_fp)) != EOF) {
+    	// convert int to string rep.
+    	char strInt[2];  // one space for bit, one space for null char
+    	printf("** decode.c/main: reading in compressed bitstream: n=%d\n", n);
+    	n = n - '0';  // should always be 0 or 1
+    	sprintf(strInt, "%d", n);
+    	printf("** decode.c/main: reading compressed data: bit=%s\n", strInt);
+
+    	// build codeword from encoded bitstream
+    	strcat(codeword, strInt);
+
+    	// check if currently built codeword from input file has valid codebook entry
+    	int i;
+    	for(i=0; i < MAX_WORD_LENGTH; i++)
+    	{
+    		if(codebook[i].valid == 1 && strcmp(codeword, codebook[i].codeword) == 0)
+    		{
+    			printf("** decode.c/main: codeword match found codeword=%s, codebook[%d]=%s\n\n",
+    					codeword, i, codebook[i].codeword);
+
+    			// write char rep. of codebook key to output
+    			char key[] = {i, '\0'};
+    			fputs(key, output_fp);
+
+    			// reset constructed codeword
+    			strcpy(codeword, "\0");
+    		}
+    	}
+
+	}
+
+    fclose(input_encodedData_fp);
     fclose(output_fp);
 
     return 0;
 }
-
-
-
-
-
-
-
-
